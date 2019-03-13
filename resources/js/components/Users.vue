@@ -5,7 +5,7 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Responsive Hover Table</h3>
-              <button class="btn btn-success "  data-toggle="modal" data-target="#addNew">Add New
+              <button class="btn btn-success "  @click= "newModal">Add New
                   <i class="fa fa-user-plus fa-fw"></i>
               </button>
               <div class="card-tools">
@@ -38,10 +38,10 @@
                   <td>{{user.type | upText}}</td>
                   <td>{{user.created_at | myDate}}</td>
                   <td>
-                      <a href="#">
+                      <a href="#" @click= "editModal(user)">
                           <i class="fa fa-edit"></i>
                       </a>|
-                      <a href="#">
+                      <a href="#" @click= "deleteUser(user.id)" >
                           <i class="fa fa-trash red"></i>
                       </a>
                   </td>
@@ -142,25 +142,72 @@
             }
         },
         methods: {
+            newModal(){
+                this.form.reset();
+                $('#addNew').modal('show');
+            },
+            editModal(user){
+                this.form.reset();
+                $('#addNew').modal('show');
+                this.form.fill(user);
+            },
+            deleteUser(id){
+                swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    //send req to server
+                    if (result.value){
+                    this.form.delete('api/user/'+id).then(()=>{
+
+                        swal(
+                        'Deleted!',
+                        'Your file has been deleted.',
+                        'success'
+                        )
+                        Fire.$emit('AfterCreate');
+                    }).catch(() =>{
+                        swal("Failed","sumting wong","warning");
+                    });               
+                    
+                    }                 
+                })
+            },
             loadUsers(){
                 axios.get("api/user").then(({data}) => (this.users = data.data));
             },
             createUser(){
                 this.$Progress.start();
-                this.form.post('api/user');
+                this.form.post('api/user')
+                .then(()=>{
+                    //call proses after creation
+                    Fire.$emit('AfterCreate');
 
-                $('#addNew').modal('hide');
-                
-                toast.fire({
-                    type: 'success',
-                    title: 'User Created Success'
+                    $('#addNew').modal('hide');
+                    
+                    toast.fire({
+                        type: 'success',
+                        title: 'User Created Success'
+                    })
+                    
+                    this.$Progress.finish();
+
                 })
-                
-                this.$Progress.finish();
+                .catch(()=>{
+
+                })
             }
         },  
         created() {
             this.loadUsers();
+            Fire.$on('AfterCreate',() => {
+                this.loadUsers();
+            });
         }
     }
 </script>

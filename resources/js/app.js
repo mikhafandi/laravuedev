@@ -26,6 +26,10 @@ const Toast = swal.mixin({
 
 window.toast = Toast;
 
+//let Fire = new Vue();
+//window.Fire = Fire;
+window.Fire = new Vue();
+
 Vue.use(VueRouter);
 
 window.Form = Form;
